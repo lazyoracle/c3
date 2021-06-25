@@ -463,7 +463,7 @@
         {
           freq:
           {
-            value: 5000000000.0
+            value: 5001000000.0
             min_val: 4995000000.0
             max_val: 5005000000.0
             unit: Hz 2pi
