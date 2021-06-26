@@ -251,7 +251,7 @@ class C3(Optimizer):
         with open(self.logdir + self.logname, "a") as logfile:
             logfile.write(
                 f"\n  Parameterset {ipar + 1}, #{count} of {len(indeces)}:\n"
-                f"{str(self.exp.pmap)}\n"
+                f"{self.pmap.str_parameters(self.pmap.opt_map)}\n"
             )
             logfile.write(
                 "Sequence    Simulation  Experiment  Std           Shots" "    Diff\n"
