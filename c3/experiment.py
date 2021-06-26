@@ -179,18 +179,6 @@ class Experiment:
             cfg = hjson.loads(cfg_file.read())
         model = Model()
         model.fromdict(cfg["model"])
-
-        # Debugging with post-hoc tasks begins
-        import c3.libraries.tasks as tasks
-        from c3.c3objs import Quantity as Qty
-
-        init_ground = tasks.InitialiseGround(
-        init_temp=Qty(value=0, min_val=-0.001, max_val=0.22, unit="K")
-        )
-        task_list = [init_ground]
-        model.set_tasks(task_list)
-        # Debugging ends
-
         generator = Generator()
         generator.fromdict(cfg["generator"])
         pmap = ParameterMap(model=model, generator=generator)
