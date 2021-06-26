@@ -502,6 +502,24 @@
         ]
       }
     }
+      Tasks:
+      {
+        init_ground:
+        {
+          c3type: InitialiseGround
+          params:
+          {
+            init_temp:
+            {
+              value: 0
+              min_val: -0.001
+              max_val: 0.22
+              unit: K
+              symbol: \alpha
+            }
+          }
+        }
+      }
   }
   generator:
   {
