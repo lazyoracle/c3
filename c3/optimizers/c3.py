@@ -115,6 +115,8 @@ class C3(Optimizer):
         self.fom = g_LL_prime_combined
         self.__dir_path = dir_path
         self.__run_name = run_name
+        self.scaling = True  # interoperability with sensitivity which uses no scaling
+        self.logname = "model_learn.log"  # shared log_setup requires logname
         self.run = self.learn_model  # Alias legacy name for optimization method
 
     def log_setup(self) -> None:
@@ -135,7 +137,6 @@ class C3(Optimizer):
                 [self.algorithm.__name__, self.sampling.__name__, self.fom.__name__]
             )
         self.logdir = log_setup(self.__dir_path, run_name)
-        self.logname = "model_learn.log"
 
     def read_data(self, datafiles: Dict[str, str]) -> None:
         """
@@ -225,7 +226,14 @@ class C3(Optimizer):
         m = self.learn_from[ipar]
         gateset_params = m["params"]
         sequences = m["seqs"][:seqs_pp]
-        self.pmap.set_parameters_scaled(current_params)
+
+        # Model learning uses scaled parameters but Sensitivity uses
+        # unscaled parameters. This workaround flag allows for code reuse
+        if self.scaling:
+            self.pmap.set_parameters_scaled(current_params)
+        else:
+            self.pmap.set_parameters(current_params)
+
         self.pmap.str_parameters()
         self.pmap.model.update_model()
         self.pmap.set_parameters(gateset_params, self.gateset_opt_map)
