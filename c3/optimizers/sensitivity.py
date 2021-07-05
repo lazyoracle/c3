@@ -1,51 +1,67 @@
 """Object that deals with the sensitivity test."""
 
+from copy import deepcopy
 import os
+from typing import Any, Dict, List, Tuple
 from c3.optimizers.c3 import C3
+from c3.parametermap import ParameterMap
+from c3.utils.utils import flatten
 
 
 class SET(C3):
-    """Object that deals with the sensitivity test.
+    """Class for Sensitivity Analysis, subclassed from Model Learning
 
     Parameters
     ----------
-    dir_path : str
-        Filepath to save results
-    fom : callable
-        Figure of merit
     sampling : str
-        Sampling method from the sampling library
-    batch_sizes : list
-        Number of points to select from each dataset
-    sweep_map : list
-        Identifiers to be swept
-    state_labels : list
-        Identifiers for the qubit subspaces
-    algorithm : callable
-        From the algorithm library
-    options : dict
-        Options to be passed to the algorithm
-    run_name : str
-        User specified name for the run, will be used as root folder
+        Name of the sampling method from library
+    batch_sizes : Dict[str, int]
+        Number of points to select from the dataset
+    pmap : ParameterMap
+        Model parameter map
+    datafiles : Dict[str, str]
+        The datafiles for each of the learning datasets
+    state_labels : Dict[str, List[Any]]
+        The labels for the excited states of the system
+    sweep_map : List[List[List[str]]]
+        Map of variables to be swept in exp_opt_map format
+    sweep_bounds : List[List[int]]
+        List of upper and lower bounds for each sweeping variable
+    algorithm : str
+        Name of the sweeping algorithm from the library
+    estimator : str
+        Name of estimator method from library
+    estimator_list : List[str]
+        List of different estimators to be used
+    dir_path : str, optional
+        Path to save sensitivity logs, by default None
+    run_name : str, optional
+        Name of the experiment run, by default None
+    options : dict, optional
+        Options for the sweeping algorithm, by default {}
+
+    Raises
+    ------
+    NotImplementedError
+        When trying to set the estimator or estimator_list
     """
 
     def __init__(
         self,
-        estimator,
-        estimator_list,
-        sampling,
-        batch_sizes,
-        pmap,
-        datafiles,
-        dir_path=None,
-        state_labels=None,
-        sweep_map=None,
-        sweep_bounds=None,
-        algorithm=None,
-        run_name=None,
+        sampling: str,
+        batch_sizes: Dict[str, int],
+        pmap: ParameterMap,
+        datafiles: Dict[str, str],
+        state_labels: Dict[str, List[Any]],
+        sweep_map: List[List[Tuple[str]]],
+        sweep_bounds: List[List[int]],
+        algorithm: str,
+        estimator: str = None,
+        estimator_list: List[str] = None,
+        dir_path: str = None,
+        run_name: str = None,
         options={},
-    ):
-        """Initiliase."""
+    ) -> None:
 
         super().__init__(
             sampling,
@@ -53,14 +69,26 @@ class SET(C3):
             pmap,
             datafiles,
             dir_path,
+            estimator,
             state_labels=state_labels,
             algorithm=algorithm,
             run_name=run_name,
             options=options,
         )
-        self.sweep_map = sweep_map
-        self.pmap.opt_map = [sweep_map[0]]
-        self.sweep_bounds = sweep_bounds
+        if estimator_list:
+            raise NotImplementedError(
+                "C3:ERROR: Estimator Lists are currently not supported."
+                "Only the standard logarithmic likelihood can be used at the moment."
+                "Please remove this setting."
+            )
+        self.sweep_map = sweep_map  # variables to be swept
+        self.pmap.opt_map = [
+            sweep_map[0]
+        ]  # set the opt_map to the first sweep variable
+        self.sweep_bounds = sweep_bounds  # bounds for sweeping
+        self.sweep_end: List[
+            Dict[Any, Any]
+        ] = list()  # list for storing the params and goals at the end of the sweep
         self.scaling = False  # interoperability with model learning which uses scaling
         self.logname = "sensitivity.log"  # shared log_setup requires logname
         self.run = self.sensitivity  # alias for legacy method
@@ -88,3 +116,5 @@ class SET(C3):
                 )
             except KeyboardInterrupt:
                 pass
+            temp_param_name = "".join(flatten(self.pmap.opt_map))
+            self.sweep_end.append({temp_param_name: deepcopy(self.optim_status)})
