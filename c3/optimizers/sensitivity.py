@@ -25,8 +25,6 @@ class SET(C3):
         From the algorithm library
     options : dict
         Options to be passed to the algorithm
-    same_dyn : boolean
-        ?
     run_name : str
         User specified name for the run, will be used as root folder
     """
@@ -45,7 +43,6 @@ class SET(C3):
         sweep_bounds=None,
         algorithm=None,
         run_name=None,
-        same_dyn=False,
         options={},
     ):
         """Initiliase."""
@@ -64,6 +61,8 @@ class SET(C3):
         self.sweep_map = sweep_map
         self.pmap.opt_map = [sweep_map[0]]
         self.sweep_bounds = sweep_bounds
+        self.scaling = False  # interoperability with model learning which uses scaling
+        self.logname = "sensitivity.log"  # shared log_setup requires logname
         self.run = self.sensitivity  # alias for legacy method
 
     def sensitivity(self):
