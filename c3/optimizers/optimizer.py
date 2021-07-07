@@ -253,13 +253,13 @@ class Optimizer:
         if isinstance(input_parameters, np.ndarray):
             current_params = tf.constant(input_parameters)
             goal = self.goal_run(current_params)
-            self.log_parameters()
+            # self.log_parameters()
             goal = float(goal)
             return goal
         else:
             current_params = input_parameters
             goal = self.goal_run(current_params)
-            self.log_parameters()
+            # self.log_parameters()
             return goal
 
     def fct_to_min_autograd(self, x):

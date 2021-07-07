@@ -300,6 +300,10 @@ class ModelLearning(Optimizer):
         count = 0
         seqs_pp = self.seqs_per_point
         # TODO: seq per point is not constant. Remove.
+        print(f"Inside goal_run with params: {current_params}")
+
+        # The loop below fucks up everything leading to lock issues
+        # multiple processes trying to read/write from the same variable
 
         for target, data in self.learn_data.items():
 
@@ -344,18 +348,18 @@ class ModelLearning(Optimizer):
                 sim_values.extend(sim_vals)
                 exp_values.extend(m_vals)
 
-                self._log_one_dataset(data_set, ipar, indeces, sim_vals, count)
+                # self._log_one_dataset(data_set, ipar, indeces, sim_vals, count)
 
         goal = g_LL_prime_combined(goals, seq_weigths)
         # TODO make gradient free function use any fom
 
-        with open(self.logdir + self.logname, "a") as logfile:
-            logfile.write("\nFinished batch with ")
-            logfile.write("{}: {}\n".format("g_LL_prime_combined", goal))
-            for cb_fom in self.callback_foms:
-                val = float(cb_fom(exp_values, sim_values, exp_stds, exp_shots).numpy())
-                logfile.write("{}: {}\n".format(cb_fom.__name__, val))
-            logfile.flush()
+        # with open(self.logdir + self.logname, "a") as logfile:
+        #     logfile.write("\nFinished batch with ")
+        #     logfile.write("{}: {}\n".format("g_LL_prime_combined", goal))
+        #     for cb_fom in self.callback_foms:
+        #         val = float(cb_fom(exp_values, sim_values, exp_stds, exp_shots).numpy())
+        #         logfile.write("{}: {}\n".format(cb_fom.__name__, val))
+        #     logfile.flush()
 
         self.optim_status["params"] = [
             par.numpy().tolist() for par in self.pmap.get_parameters()
@@ -363,6 +367,7 @@ class ModelLearning(Optimizer):
         self.optim_status["goal"] = goal
         self.optim_status["time"] = time.asctime()
         self.evaluation += 1
+        print(f"{goal} from this thread")  # Never reaches here
         return goal
 
     def goal_run_with_grad(self, current_params):

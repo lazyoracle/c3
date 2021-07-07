@@ -120,6 +120,7 @@ class Sensitivity(ModelLearning):
                 )
             except KeyboardInterrupt:
                 pass
+            print("I am done")  # never reaches here
             temp_param_name = "".join(flatten(self.pmap.opt_map))
             self.sweep_end.append({temp_param_name: deepcopy(self.optim_status)})
             self.logdir_list.append(deepcopy(self.logdir))

@@ -13,6 +13,7 @@ import copy
 import warnings
 from scipy.optimize import OptimizeResult
 import tensorflow as tf
+import multiprocessing
 
 algorithms = dict()
 
@@ -149,14 +150,17 @@ def sweep(x_init, fun=None, fun_grad=None, grad_lookup=None, options={}):
             else:
                 fun([p])
 
-    xs = np.linspace(bound_min, bound_max, points)
-    for x in xs:
-        if "wrapper" in options:
-            val = copy.deepcopy(options["wrapper"])
-            val[val.index("x")] = x
-            fun([val])
-        else:
-            fun([x])
+    xs = [[x_i] for x_i in np.linspace(bound_min, bound_max, points)]
+    sweep_pool = multiprocessing.Pool(100)
+    sweep_pool.map(fun, xs)
+    print("I am done")  # Never reaches here
+    # for x in xs:
+    #     if "wrapper" in options:
+    #         val = copy.deepcopy(options["wrapper"])
+    #         val[val.index("x")] = x
+    #         fun([val])
+    #     else:
+    #         fun([x])
 
 
 @algo_reg_deco
